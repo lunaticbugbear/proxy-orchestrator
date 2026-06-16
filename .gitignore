@@ -1,0 +1,25 @@
+# Databases
+*.db
+*.db-wal
+*.db-shm
+
+# Reports / generated
+test_report.json
+*.report.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Secrets - never commit real config
+config.local.yaml
+.env
+
+# OS
+.DS_Store
+Thumbs.db

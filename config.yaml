@@ -1,0 +1,55 @@
+# Proxy Orchestrator Configuration
+# ================================
+
+# SQLite database path (tracking, analytics)
+database: proxies.db
+
+# Health check settings
+health_check:
+  interval: 300          # seconds between checks (5 min)
+  timeout: 10            # timeout per proxy check
+  test_url: "https://httpbin.org/ip"
+  min_pool_size: 3       # alert if active proxies drop below this
+
+# Webhook alerts (Telegram, Discord, Slack, etc.)
+webhooks:
+  - url: "https://api.telegram.org/bot<TOKEN>/sendMessage"
+    method: "POST"
+    payload:
+      chat_id: "<CHAT_ID>"
+      parse_mode: "Markdown"
+    # {message} will be replaced with alert text
+    body_template: '{"text": "{message}"}'
+
+# Proxy definitions
+# Add your proxies here. Format:
+#   - host: proxy host or URL
+#     port: port
+#     username: (optional)
+#     password: (optional)
+#     region: geo region tag (e.g., "US", "ID", "SG")
+#     protocol: "http" | "https" | "socks5"
+
+proxies:
+  # Example: IPRoyal format
+  # geo.iproyal.com:12321:user:pass:session-abc123:30m
+  - host: "geo.iproyal.com"
+    port: 12321
+    username: "your_user"
+    password: "your_pass"
+    region: "US"
+    protocol: "http"
+
+  # Example: plain HTTP proxy
+  - host: "proxy.example.com"
+    port: 8080
+    region: "SG"
+    protocol: "http"
+
+  # Example: SOCKS5
+  - host: "socks.example.com"
+    port: 1080
+    username: "user"
+    password: "pass"
+    region: "ID"
+    protocol: "socks5"
