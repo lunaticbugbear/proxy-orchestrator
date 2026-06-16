@@ -25,8 +25,10 @@ proxy-orchestrator/
 ├── health.py      # Background health checker
 ├── alerting.py    # Webhook alert delivery (Telegram/Discord/Slack)
 ├── analytics.py   # Reporting & stats
+├── dashboard.py   # Web dashboard (FastAPI + embedded HTML/JS)
 ├── config.yaml    # Configuration (proxies, health check, webhooks)
 ├── example.py     # Full usage example
+├── test_orchestrator.py  # pytest suite (17 tests)
 └── requirements.txt
 ```
 
@@ -190,10 +192,36 @@ health_log(id, proxy_id, status, latency_ms, checked_at)
 request_log(id, proxy_id, session_id, url, status_code, success, latency_ms, error, timestamp)
 ```
 
+## Web Dashboard
+
+A real-time dark-themed dashboard (FastAPI + embedded HTML/JS, no build step).
+
+```bash
+python dashboard.py
+# → http://localhost:8643
+```
+
+Features:
+- **Stat cards**: active/inactive count, total requests, success rate, avg latency
+- **Proxy table**: live status (UP/DOWN), host:port, region, protocol, weight, success/fail counts, health bar, avg latency
+- **Auto-refresh**: every 3 seconds
+- **API endpoints**: `/api/stats`, `/api/db-stats`, `/api/health-log/{proxy_id}`
+
+To run the dashboard alongside the orchestrator programmatically:
+
+```python
+import dashboard
+import uvicorn
+
+dashboard.set_orchestrator(orch)
+uvicorn.run(dashboard.app, host="0.0.0.0", port=8643)
+```
+
 ## Tech Stack
 
 - **Python 3.11+**
 - **aiohttp** — async HTTP client with proxy support
+- **FastAPI + Uvicorn** — web dashboard and REST API
 - **SQLite** — zero-config persistence (WAL mode for concurrent reads)
 - **PyYAML** — configuration
 

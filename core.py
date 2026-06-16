@@ -420,6 +420,7 @@ class ProxyOrchestrator:
                 "host": p.host,
                 "port": p.port,
                 "region": p.region,
+                "protocol": p.protocol,
                 "active": p.active,
                 "weight": round(p.weight, 3),
                 "success_count": p.success_count,

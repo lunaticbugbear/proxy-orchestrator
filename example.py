@@ -95,7 +95,18 @@ async def main():
         for p in top:
             logger.info(f"  {p['host']}:{p['port']} - {p['success_rate']}% success, {p['avg_latency']}ms avg")
 
-    # --- 8. Cleanup ---
+    # --- 8. Start dashboard (optional) ---
+    # To run the web dashboard alongside the orchestrator:
+    #
+    #   import dashboard
+    #   dashboard.set_orchestrator(orch)
+    #   import uvicorn
+    #   uvicorn.run(dashboard.app, host="0.0.0.0", port=8643)
+    #
+    # Or run it standalone:
+    #   python dashboard.py  (then add proxies via API or config)
+
+    # --- 9. Cleanup ---
     checker.stop()
     health_task.cancel()
     try:
