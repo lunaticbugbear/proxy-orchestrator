@@ -213,5 +213,61 @@ class Database:
             })
         return results
 
+    def get_recent_requests(self, limit: int = 50) -> list[dict]:
+        """Recent requests across all proxies (for activity feed)."""
+        with self._lock:
+            cur = self._conn.execute(
+                """SELECT r.*, p.host, p.port, p.region
+                   FROM request_log r
+                   JOIN proxies p ON r.proxy_id = p.id
+                   ORDER BY r.timestamp DESC
+                   LIMIT ?""",
+                (limit,)
+            )
+            return [dict(r) for r in cur.fetchall()]
+
+    def get_proxy_requests(self, proxy_id: int, limit: int = 100) -> list[dict]:
+        """Recent requests for a specific proxy."""
+        with self._lock:
+            cur = self._conn.execute(
+                """SELECT * FROM request_log
+                   WHERE proxy_id = ?
+                   ORDER BY timestamp DESC
+                   LIMIT ?""",
+                (proxy_id, limit)
+            )
+            return [dict(r) for r in cur.fetchall()]
+
+    def get_trends(self, hours: int = 24) -> dict:
+        """Aggregated trends for charts: hourly buckets of success/fail + avg latency."""
+        with self._lock:
+            cur = self._conn.execute(
+                """SELECT
+                     strftime('%Y-%m-%d %H:00', timestamp) as hour,
+                     COUNT(*) as total,
+                     SUM(success) as successes,
+                     AVG(CASE WHEN success = 1 THEN latency_ms END) as avg_lat
+                   FROM request_log
+                   WHERE timestamp >= datetime('now', ?)
+                   GROUP BY hour
+                   ORDER BY hour""",
+                (f"-{hours} hours",)
+            )
+            rows = [dict(r) for r in cur.fetchall()]
+
+            # Region distribution
+            cur2 = self._conn.execute(
+                """SELECT p.region, COUNT(*) as count, SUM(r.success) as successes
+                   FROM request_log r
+                   JOIN proxies p ON r.proxy_id = p.id
+                   WHERE r.timestamp >= datetime('now', ?)
+                   GROUP BY p.region
+                   ORDER BY count DESC""",
+                (f"-{hours} hours",)
+            )
+            regions = [dict(r) for r in cur2.fetchall()]
+
+            return {"hourly": rows, "regions": regions}
+
     def close(self):
         self._conn.close()
